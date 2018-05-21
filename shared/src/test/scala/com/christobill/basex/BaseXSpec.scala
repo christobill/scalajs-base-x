@@ -18,6 +18,14 @@ package com.christobill.basex
 
 import org.scalatest.{FunSpec, Matchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import eu.timepit.refined._
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.auto._
+import eu.timepit.refined.collection.NonEmpty
+import eu.timepit.refined.numeric._
+import eu.timepit.refined.string._
+import org.scalacheck.Arbitrary
+import shapeless.Witness
 
 trait BaseXSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks {
 
@@ -38,11 +46,30 @@ trait BaseXSpec extends FunSpec with Matchers with GeneratorDrivenPropertyChecks
 
     }
 
-    it("should verify encode ∘ decode = id") {
-      forAll { (string0: String) ⇒
-        val string = "5Kd3NBUAdUnhyzenEwVLy9pBKxSwXvE9FMPyR4UKZvpe6E3AgLr"
+    val base      = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val a: String = s"[$base]*"
+    val x         = Witness(a)
+    type Test0 = String Refined MatchesRegex[x.T]
+    val i1: Either[String, Test0] = refineV("ab")
 
-        encode(decode(string)) should equal(string)
+    import org.scalacheck.Gen
+
+    implicit lazy val arbDouble: Arbitrary[Test0] = Arbitrary(
+      (for {
+        e ← Gen.listOf(Gen.oneOf(base.toCharArray))
+      } yield e.mkString)
+        .map[Either[String, Test0]](x ⇒ refineV(x))
+        .filter(x ⇒ x.isRight)
+        .map(_.right.get) //.filter(x: Either[String, Test0] => x.isRight)
+    )
+
+    import eu.timepit.refined.scalacheck.string._
+
+    it("should verify encode ∘ decode = id") {
+      forAll { (string0: Test0) ⇒
+        val string = string0
+
+        encode(decode(string.value)) should equal(string.value)
       }
 
     }

@@ -20,8 +20,10 @@ lazy val basex = crossProject
     organizationName := "christobill",
     // Dependencies that are provided both in scala and scalajs
     libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % Versions.scalatest  % "test",
-      "org.scalacheck" %%% "scalacheck" % Versions.scalacheck % "test"
+      "eu.timepit"     %%% "refined"            % Versions.refined    % "test",
+      "eu.timepit"     %%% "refined-scalacheck" % Versions.refined    % "test",
+      "org.scalatest"  %%% "scalatest"          % Versions.scalatest  % "test",
+      "org.scalacheck" %%% "scalacheck"         % Versions.scalacheck % "test"
     ),
 // POM settings for Sonatype
     homepage := Some(url("https://github.com/christobill/scalajs-base-x")),
